@@ -2,7 +2,7 @@ const {Storage} = require('@google-cloud/storage');
 const multer = require('multer');
 const path = require('path');
 
-// Initialize Google Cloud Storage
+// Test
 const storage = new Storage({
   projectId: 'testfinale-423113',
   keyFilename: path.join(__dirname, './testfinale-423113-35d0aba03302.json'),
