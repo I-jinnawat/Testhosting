@@ -2,29 +2,41 @@ const {SecretManagerServiceClient} = require('@google-cloud/secret-manager');
 const {Storage} = require('@google-cloud/storage');
 const multer = require('multer');
 const path = require('path');
-
+require('dotenv').config();
+const Service = process.env.Service;
 // Initialize Secret Manager client
 const client = new SecretManagerServiceClient();
 
 async function getSecret() {
   const [version] = await client.accessSecretVersion({
-    name: 'projects/530608897176/secrets/car-booking/versions/1',
+    name: 'projects/testfinale-423113/secrets/car-booking/versions/1',
   });
 
   const payload = version.payload.data.toString('utf8');
+  console.log(`Retrieved secret: ${payload}`);
   return JSON.parse(payload);
 }
 
 // Initialize Google Cloud Storage after retrieving the key file from Secret Manager
 async function initializeStorage() {
-  const credentials = await getSecret();
+  try {
+    const credentials = await getSecret();
 
-  const storage = new Storage({
-    projectId: 'testfinale-423113',
-    credentials: credentials,
-  });
+    console.log(
+      'Initializing Google Cloud Storage with credentials:',
+      credentials
+    );
 
-  return storage.bucket('carbooking2');
+    const storage = new Storage({
+      projectId: 'testfinale-423113',
+      credentials: credentials,
+    });
+
+    return storage.bucket('carbooking2');
+  } catch (error) {
+    console.error('Error initializing Google Cloud Storage:', error);
+    throw error;
+  }
 }
 
 const multerStorage = multer.memoryStorage(); // Use memory storage for multer
