@@ -1,15 +1,31 @@
+const {SecretManagerServiceClient} = require('@google-cloud/secret-manager');
 const {Storage} = require('@google-cloud/storage');
 const multer = require('multer');
 const path = require('path');
 
-// Test
-const storage = new Storage({
-  projectId: 'testfinale-423113',
-  keyFilename: path.join(__dirname, './testfinale-423113-35d0aba03302.json'),
-});
+// Initialize Secret Manager client
+const client = new SecretManagerServiceClient();
 
-// Set up bucket and multer storage configuration
-const bucket = storage.bucket('carbooking2');
+async function getSecret() {
+  const [version] = await client.accessSecretVersion({
+    name: 'projects/530608897176/secrets/car-booking/versions/1',
+  });
+
+  const payload = version.payload.data.toString('utf8');
+  return JSON.parse(payload);
+}
+
+// Initialize Google Cloud Storage after retrieving the key file from Secret Manager
+async function initializeStorage() {
+  const credentials = await getSecret();
+
+  const storage = new Storage({
+    projectId: 'testfinale-423113',
+    credentials: credentials,
+  });
+
+  return storage.bucket('carbooking2');
+}
 
 const multerStorage = multer.memoryStorage(); // Use memory storage for multer
 
@@ -24,4 +40,5 @@ const upload = multer({
   },
 });
 
-module.exports = {upload, bucket};
+// Export the upload middleware and the bucket
+module.exports = {upload, initializeStorage};
